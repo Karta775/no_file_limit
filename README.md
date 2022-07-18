@@ -11,7 +11,7 @@ $ cargo build
 $ cd example/
 $ ls
 random.data
-$ cargo run -- -d random.data
+$ cargo run -- random.data
 $ ls
 random.data
 random.data.01
@@ -24,11 +24,12 @@ random.data.nfl
 The program is not ready to use yet, but work is currently being done currently on the deconstructing part (cutting files into chunks).
 
 ## TODO 🛠
-- [ ] Make the deconstructor
+- [x] Make the deconstructor
   - [x] Cut files into chunks
   - [x] Generate a metadata file 
-  - [ ] Neatly package it into functions or a struct 🧑‍💻
-- [ ] Make the reconstructor
+  - [x] ~~Neatly~~ refactor it into functions or a struct
+  - [ ] [Low priority] Clean up the deconstructor.rs 📖
+- [ ] Make the reconstructor 🧑‍💻
   - [ ] Read a metadata file
   - [ ] Stitch files back together
 - [ ] Make a decent CLI/TUI experience
