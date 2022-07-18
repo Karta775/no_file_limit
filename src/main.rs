@@ -21,6 +21,10 @@ struct Args {
     #[clap(short, long, value_parser)]
     deconstruct: bool,
 
+    /// The chunk size in megabytes
+    #[clap(short, long, value_parser, default_value="8")]
+    chunk_size: usize,
+
     /// Reconstruct a file from n-MB chunks
     #[clap(short, long, value_parser)]
     reconstruct: bool,
@@ -38,9 +42,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let path = Path::new(&args.filepath);
     let bytes = std::fs::read(path).expect("Couldn't read the file");
-    let filename = path.display().to_string();
+    let filename = String::from(path.file_name().unwrap().to_str().unwrap());
     let filesize = bytes.len();
-    let chunk_size = MEBIBYTE_SIZE * 8; // TODO: Let the user set this / use a default
+    let chunk_size = MEBIBYTE_SIZE * args.chunk_size; // TODO: Let the user set this / use a default
 
 
     // TODO: Turn this block into a function or something
