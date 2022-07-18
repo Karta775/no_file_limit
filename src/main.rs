@@ -13,11 +13,11 @@ const MEBIBYTE_SIZE: usize = usize::pow(2, 20);
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// The name of the file you want to (de/re)construct
+    /// The file you want to (de/re)construct
     #[clap(value_parser, required=true)]
     filepath: String,
 
-    /// Deconstruct a file into n-MB chunks
+    /// Deconstruct a file
     #[clap(short, long, value_parser)]
     deconstruct: bool,
 
@@ -25,7 +25,7 @@ struct Args {
     #[clap(short, long, value_parser, default_value="8")]
     chunk_size: usize,
 
-    /// Reconstruct a file from n-MB chunks
+    /// Reconstruct a file
     #[clap(short, long, value_parser)]
     reconstruct: bool,
 }
@@ -45,7 +45,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let filename = String::from(path.file_name().unwrap().to_str().unwrap());
     let filesize = bytes.len();
     let chunk_size = MEBIBYTE_SIZE * args.chunk_size; // TODO: Let the user set this / use a default
-
 
     // TODO: Turn this block into a function or something
     if args.deconstruct {
