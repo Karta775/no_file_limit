@@ -1,11 +1,11 @@
-use std::thread;
-use std::time::Duration;
-use clap::Parser;
 
+use clap::Parser;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::error::Error;
+use serde::Serialize;
+use serde::Deserialize;
 
 const MEBIBYTE_SIZE: usize = usize::pow(2, 20);
 
@@ -26,14 +26,22 @@ struct Args {
     reconstruct: bool,
 }
 
+#[derive(Serialize)]
+#[derive(Deserialize)]
+struct Metadata {
+    filename: String,
+    filesize: usize,
+    chunk_size: usize,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    let chunk_size = MEBIBYTE_SIZE * 8;
-
     let path = Path::new(&args.filepath);
     let bytes = std::fs::read(path).expect("Couldn't read the file");
-    let filename = path.display();
+    let filename = path.display().to_string();
     let filesize = bytes.len();
+    let chunk_size = MEBIBYTE_SIZE * 8; // TODO: Let the user set this / use a default
+
 
     // TODO: Turn this block into a function or something
     if args.deconstruct {
@@ -49,14 +57,27 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Cut the file into chunks
         for i in 0..num_of_chunks {
-            let chunk_name = format!("{}.{:01}", filename, i + 1);
+            let chunk_name = format!("{}.{:02}", filename, i + 1);
             let chunk_start = i * chunk_size;
             let chunk_end = usize::min(chunk_start + chunk_size, filesize);
             let mut file = File::create(chunk_name)
-                .expect("Couldn't create a file");
+                .expect("Couldn't create a chunk file");
             file.write_all(&bytes[chunk_start..chunk_end])
-                .expect("Couldn't write to the file");
+                .expect("Couldn't write to a chunk file");
         }
+
+        // Generate the metadata file
+        let metadata_filename = format!("{}.nfl", filename);
+        let metadata = Metadata {
+            filename,
+            filesize,
+            chunk_size
+        };
+        let toml = toml::to_string(&metadata).unwrap();
+        let mut metadata_file = File::create(metadata_filename)
+            .expect("Couldn't create the metadata file");
+        metadata_file.write_all(toml.as_bytes())
+            .expect("Couldn't write to the metadata file");
     }
 
     return Ok(());

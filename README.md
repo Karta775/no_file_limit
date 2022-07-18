@@ -10,7 +10,8 @@ The program is not ready to use yet, but work is currently being done currently 
 ## TODO 
 - [ ] Make the deconstructor 🛠
   - [x] Cut files into chunks
-  - [ ] Generate a metadata file 🛠
+  - [x] Generate a metadata file 
+  - [ ] Neatly package it into functions or a struct 🛠
 - [ ] Make the reconstructor
   - [ ] Read a metadata file
   - [ ] Stitch files back together
