@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bytes = std::fs::read(path).expect("Couldn't read the file");
     let filename = String::from(path.file_name().unwrap().to_str().unwrap());
     let filesize = bytes.len();
-    let chunk_size = MEBIBYTE_SIZE * args.chunk_size; // TODO: Let the user set this / use a default
+    let chunk_size = MEBIBYTE_SIZE * args.chunk_size;
 
     // TODO: Turn this block into a function or something
     if args.deconstruct {
