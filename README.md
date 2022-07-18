@@ -8,8 +8,8 @@ For the sender, the program will cut files into variably-sized chunks (8MB for D
 The program is not ready to use yet, but work is currently being done currently on the deconstructing part (cutting files into chunks).
 
 ## TODO
-- [ ] Make the deconstructor
-  - [ ] Cut files into chunks
+- [ ] Make the deconstructor 🛠
+  - [ ] Cut files into chunks 🛠
   - [ ] Generate a metadata file
 - [ ] Make the reconstructor
   - [ ] Read a metadata file
