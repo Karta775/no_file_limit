@@ -1,6 +1,5 @@
 use std::thread;
 use std::time::Duration;
-use indicatif::ProgressBar;
 use rand::{Rng, thread_rng};
 use clap::Parser;
 
@@ -34,26 +33,23 @@ fn main() {
 
     let path = Path::new(&args.filepath);
     let bytes = std::fs::read(path).expect("Couldn't read the file");
+    let filename = path.display();
     let filesize = bytes.len();
 
     if args.deconstruct {
-        println!("This operation will cut into {} pieces.", filesize / chunk_size);
-        println!("The leftover chunk will be {} bytes", filesize % chunk_size);
+        // Calculate the number of chunks that will be created
         let mut num_of_chunks = filesize / chunk_size;
         num_of_chunks += if filesize % chunk_size != 0 { 1 } else { 0 };
-        println!("We're making {} chunks", num_of_chunks);
-        let mut file = File::create("foo.txt").expect("Couldn't create a file");
-        file.write_all(&bytes).expect("Couldn't write to the file");
+
+        // Cut the file into chunks
+        for i in 0..num_of_chunks {
+            let chunk_name = format!("{}.{:01}", filename, i + 1);
+            let chunk_start = i * chunk_size;
+            let chunk_end = usize::min(chunk_start + chunk_size, filesize);
+            let mut file = File::create(chunk_name)
+                .expect("Couldn't create a file");
+            file.write_all(&bytes[chunk_start..chunk_end])
+                .expect("Couldn't write to the file");
+        }
     }
-
-    println!("The chunk size is {}", chunk_size);
-    println!("Size of file is {} bytes", bytes.len());
-
-    let pb = ProgressBar::new(1000);
-    for _ in 0..1000 {
-        pb.inc(1);
-        thread::sleep(Duration::from_millis(rng.gen_range(0..=3)));
-    }
-
-    pb.finish_with_message("done");
 }
