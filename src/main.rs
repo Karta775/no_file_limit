@@ -1,11 +1,11 @@
 use std::thread;
 use std::time::Duration;
-use rand::{Rng, thread_rng};
 use clap::Parser;
 
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::error::Error;
 
 const MEBIBYTE_SIZE: usize = usize::pow(2, 20);
 
@@ -26,8 +26,7 @@ struct Args {
     reconstruct: bool,
 }
 
-fn main() {
-    let mut rng = thread_rng();
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let chunk_size = MEBIBYTE_SIZE * 8;
 
@@ -36,7 +35,14 @@ fn main() {
     let filename = path.display();
     let filesize = bytes.len();
 
+    // TODO: Turn this block into a function or something
     if args.deconstruct {
+        // Validation
+        if filesize < chunk_size {
+            println!("Your input file is already smaller than the selected chunk size");
+            return Ok(());
+        }
+
         // Calculate the number of chunks that will be created
         let mut num_of_chunks = filesize / chunk_size;
         num_of_chunks += if filesize % chunk_size != 0 { 1 } else { 0 };
@@ -52,4 +58,6 @@ fn main() {
                 .expect("Couldn't write to the file");
         }
     }
+
+    return Ok(());
 }
