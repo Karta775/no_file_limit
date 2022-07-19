@@ -4,7 +4,7 @@ mod helper;
 use helper::*;
 use clap::Parser;
 use std::path::PathBuf;
-use std::error::Error;
+use std::io;
 
 /// Defeat awful file size limits
 #[derive(Parser, Debug)]
@@ -19,18 +19,23 @@ struct Args {
     chunk_size: usize,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), io::Error>{
     let args = Args::parse();
     let path = PathBuf::from(&args.filepath);
     let extension = path.extension().unwrap().to_str().unwrap().to_owned();
 
     if extension == METADATA_FILE_EXTENSION {
         let glue = Glue::new(&args.filepath);
-        glue.reconstruct()?
+        println!("Started reconstructing the file");
+        glue.reconstruct()
+            .expect("Something went wrong while trying to reconstruct the file");
+
     } else if extension != METADATA_FILE_EXTENSION {
         let slicer = Slicer::new(&args.filepath, args.chunk_size);
-        slicer.deconstruct()?
+        println!("Started deconstructing the file");
+        slicer.deconstruct()
+            .expect("Something went wrong while trying to deconstruct the file");
     }
 
-    return Ok(());
+    return Ok(())
 }
