@@ -1,7 +1,7 @@
-pub mod deconstructor;
-pub mod metadata;
 
-use deconstructor::Deconstructor;
+mod helper;
+
+use helper::*;
 use clap::Parser;
 use std::path::PathBuf;
 use std::error::Error;
@@ -24,12 +24,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = PathBuf::from(&args.filepath);
     let extension = path.extension().unwrap().to_str().unwrap().to_owned();
 
-    // TODO: Turn this block into a function or something
-    if extension == metadata::METADATA_FILE_EXTENSION {
-        println!("I'm supposed to reconstruct the file :)");
-    } else if extension != metadata::METADATA_FILE_EXTENSION {
-        let deconstructor = Deconstructor::new(&args.filepath, args.chunk_size);
-        deconstructor.deconstruct().expect("Failed to deconstruct the file");
+    if extension == METADATA_FILE_EXTENSION {
+        let glue = Glue::new(&args.filepath);
+        glue.reconstruct()?
+    } else if extension != METADATA_FILE_EXTENSION {
+        let slicer = Slicer::new(&args.filepath, args.chunk_size);
+        slicer.deconstruct()?
     }
 
     return Ok(());

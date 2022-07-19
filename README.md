@@ -11,26 +11,31 @@ $ cargo build
 $ cd example/
 $ ls
 random.data
-$ cargo run -- random.data
+$ cargo run -- random.data && rm random.data
 $ ls
-random.data
 random.data.01
 random.data.02
 random.data.03
 random.data.nfl
+$ cargo run -- random.data.nfl && rm random.data.*
+$ ls
+random.data
 ```
 
 ## Work in progress ⚠️
-The program is not ready to use yet, but work is currently being done currently on the deconstructing part (cutting files into chunks).
+The program is not ready to use yet.
 
 ## TODO 🛠
-- [x] Make the deconstructor
+- [x] Make the slicer
   - [x] Cut files into chunks
   - [x] Generate a metadata file 
   - [x] ~~Neatly~~ refactor it into functions or a struct
-  - [ ] [Low priority] Clean up the deconstructor.rs 📖
-- [ ] Make the reconstructor 🧑‍💻
-  - [ ] Read a metadata file
-  - [ ] Stitch files back together
+  - [ ] [Low priority] Clean up the Slicer struct 📖
+- [x] Make the reconstructor
+  - [x] Read a metadata file
+  - [x] Stitch files back together
+  - [ ] [Low priority] Clean up the Glue struct 📖
+  - [ ] [Low priority] Think of a better name
+- [ ] Fix the poor error handling 🧑‍💻📖
 - [ ] Make a decent CLI/TUI experience
 - [ ] Make a nice GUI
