@@ -38,4 +38,8 @@ The program is not ready to use yet.
   - [ ] [Low priority] Think of a better name
 - [ ] Fix the poor error handling 🧑‍💻📖
 - [ ] Make a decent CLI/TUI experience
+  - [ ] Use a crate like indicatif to show progress
+  - [ ] Offer an interactive mode if no flags are set
+    - Presets for Discord, Whatsapp, etc. As well as a custom option.
+    - Maybe this could also be used for filesystem limits like FAT's 4GB maximum... 🤔
 - [ ] Make a nice GUI
