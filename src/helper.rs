@@ -1,9 +1,10 @@
 use std::{fs, io};
-use std::fs::File;
-use std::io::Write;
+use std::fs::{File, read};
+use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use serde::Serialize;
 use serde::Deserialize;
+use indicatif::{ProgressBar, ProgressStyle};
 
 const MEBIBYTE_SIZE: usize = usize::pow(2, 20);
 pub const METADATA_FILE_EXTENSION: &str = "nfl";
@@ -19,7 +20,7 @@ pub struct Metadata {
 
 pub struct Slicer {
     pub file_path: PathBuf,
-    pub bytes: Vec<u8>,
+    pub reader: BufReader<File>,
     pub filename: String,
     pub filesize: usize,
     pub chunk_size: usize,
@@ -38,15 +39,16 @@ fn num_of_chunks(filesize: usize, chunk_size: usize) -> usize {
 
 impl Slicer {
     pub fn new(path_str: &str, chunk_size: usize) -> Self {
-        let file_path = PathBuf::from(path_str);
-        let bytes = fs::read(&path_str).expect("Couldn't read the file");
+        let file_path = PathBuf::from(&path_str);
+        let file = File::open(&path_str).unwrap();
+        let reader = BufReader::with_capacity(8192, file);
         let filename = String::from(file_path.file_name().unwrap().to_str().unwrap());
-        let filesize = bytes.len();
+        let filesize = fs::metadata(&path_str).unwrap().len() as usize;
         let chunk_size = MEBIBYTE_SIZE * chunk_size;
 
         Slicer {
             file_path,
-            bytes,
+            reader,
             filename,
             filesize,
             chunk_size,
@@ -63,19 +65,40 @@ impl Slicer {
         status
     }
 
-    fn create_chunks(&self) -> Result<(), io::Error> {
+    fn create_chunks(&mut self) -> Result<(), io::Error> {
         // Calculate the number of chunks that will be created
         let num_of_chunks = num_of_chunks(self.filesize, self.chunk_size);
 
+        // Create a progress bar
+        let pb = ProgressBar::new(self.filesize as u64);
+        pb.set_style(ProgressStyle::default_bar()
+            .template(" ✂️  Creating chunks {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes}")
+            .progress_chars("#>-"));
+
         // Cut the file into chunks
+        let mut bytes_written = 0;
         for i in 0..num_of_chunks {
             let chunk_name = format!("{}.{:02}", self.filename, i + 1);
-            let chunk_start = i * self.chunk_size;
-            let chunk_end = usize::min(chunk_start + self.chunk_size, self.filesize);
-            println!("Creating {}", chunk_name);
-            let mut file = File::create(chunk_name)?;
-            file.write_all(&self.bytes[chunk_start..chunk_end])?;
+            let file = File::create(chunk_name)?;
+            let mut writer = BufWriter::with_capacity(8192, file);
+
+            let mut bytes: Vec<u8> = vec![0; 8192];
+            let mut pb_throttle = 0;
+            while bytes_written < usize::min((i + 1) * self.chunk_size, self.filesize) {
+                self.reader.read_exact(&mut bytes).unwrap();
+                let bytes_w = writer.write(&bytes).unwrap();
+                bytes_written += bytes_w;
+
+                // The progress bar needs to be updated infrequently to avoid slowdown
+                pb_throttle += bytes_w;
+                if pb_throttle > MEBIBYTE_SIZE {
+                    pb.set_position(bytes_written as u64);
+                    pb_throttle = 0;
+                }
+            }
+            writer.flush().unwrap();
         }
+        pb.finish();
 
         Ok(())
     }
@@ -84,7 +107,6 @@ impl Slicer {
         // Generate the metadata file
         let num_of_chunks = num_of_chunks(self.filesize, self.chunk_size);
         let metadata_filename = format!("{}.{}", self.filename, METADATA_FILE_EXTENSION);
-        println!("Creating {}", metadata_filename);
         let metadata = Metadata {
             filename: self.filename.to_string(),
             filesize: self.filesize,
@@ -98,7 +120,7 @@ impl Slicer {
         Ok(())
     }
 
-    pub fn deconstruct(&self) -> Result<(), io::Error> {
+    pub fn deconstruct(&mut self) -> Result<(), io::Error> {
         if !self.valid() {
             return Ok(()); // TODO: These Ok(()) returns seem weird, find something better
         }
@@ -113,7 +135,7 @@ impl Slicer {
 impl Glue {
     pub fn new(path_str: &str) -> Self {
         let metadata_path = PathBuf::from(path_str);
-        let bytes = fs::read(&metadata_path).expect("Couldn't read the file");
+        let bytes = read(&metadata_path).expect("Couldn't read the file");
         let metadata: Metadata = toml::from_slice(&bytes).expect("Couldn't parse the metadata");
 
         Glue {
@@ -162,10 +184,8 @@ impl Glue {
 
         let mut file = File::create(&self.metadata.filename)?;
         let mut file_bytes: Vec<u8> = Vec::new();
-
         for i in 0..self.metadata.num_of_chunks {
-            println!("Merging {}", &self.chunk_filename(i));
-            let chunk_bytes = fs::read(&self.chunk_filename(i))?;
+            let chunk_bytes = read(&self.chunk_filename(i))?;
             file_bytes.extend(chunk_bytes);
         }
         file.write_all(&file_bytes)?;

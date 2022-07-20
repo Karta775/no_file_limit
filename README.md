@@ -23,6 +23,6 @@ The program is not ready to use yet.
   - [ ] [Low priority] Think of a better name
 - [ ] Fix the poor error handling 🧑‍💻📖
 - [ ] Make a decent CLI/TUI experience 🧑‍💻
-  - [ ] Use a crate like indicatif to show progress
+  - [x] Use a crate like indicatif to show progress 🧑‍💻
   - [x] Offer an interactive mode if no flags are set
 - [ ] Make a nice GUI

@@ -43,7 +43,7 @@ fn main() -> Result<(), io::Error>{
             None => select_chunk_size()
         };
 
-        let slicer = Slicer::new(&args.filepath, chunk_size as usize);
+        let mut slicer = Slicer::new(&args.filepath, chunk_size as usize);
         slicer.deconstruct() // TODO: Error handling - don't panic
             .expect("Something went wrong while trying to deconstruct the file");
     }
@@ -69,7 +69,7 @@ fn select_chunk_size() -> usize {
     let chunk_size: usize = match selections[selection] {
         SELECTION_DISCORD => 8,
         SELECTION_WHATSAPP => 100,
-        SELECTION_FS_FAT => 4192,
+        SELECTION_FS_FAT => 4192 - 1,
         SELECTION_CUSTOM => { // TODO: Error handling - bad input
             let num: String = Input::new()
                 .with_prompt("Enter the size in megabytes")
