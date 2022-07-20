@@ -5,22 +5,7 @@ A tool to work around annoying file limits on platforms like Discord and WhatsAp
 For the sender, the program will cut files into variably-sized chunks (8MB for Discord, 100MB for WhatsApp), and produce a metadata file for the receiver. All the receiver has to do is open the metadata file, and it will stitch together the original file from the chunks.
 
 ## Example 🚀
-An example file with random data has been provided in `example/`
-```shell
-$ cargo build
-$ cd example/
-$ ls
-random.data
-$ cargo run -- random.data && rm random.data
-$ ls
-random.data.01
-random.data.02
-random.data.03
-random.data.nfl
-$ cargo run -- random.data.nfl && rm random.data.*
-$ ls
-random.data
-```
+![A demo GIF of the program deconstructing an reconstructing a file](demo.gif)
 
 ## Work in progress ⚠️
 The program is not ready to use yet.
