@@ -13,3 +13,4 @@ path = "src/main.rs"
 clap = { version = "3.2.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5.9"
+dialoguer = "0.10.1"
