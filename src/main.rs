@@ -31,18 +31,18 @@ fn main() -> Result<(), io::Error>{
     // TODO: Error handling - file not found / no extension
     let extension = path.extension().unwrap().to_str().unwrap().to_owned();
 
-    // Set the chunk size in MiB from commandline arguments or interactive mode
-    let chunk_size = match args.chunk_size {
-        Some(size) => size,
-        None => select_chunk_size()
-    };
-
     // If the metadata file is found then reconstruct, otherwise deconstruct
     if extension == METADATA_FILE_EXTENSION {
         let glue = Glue::new(&args.filepath);
         glue.reconstruct() // TODO: Error handling - don't panic
             .expect("Something went wrong while trying to reconstruct the file");
     } else if extension != METADATA_FILE_EXTENSION {
+        // Set the chunk size in MiB from commandline arguments or interactive mode
+        let chunk_size = match args.chunk_size {
+            Some(size) => size,
+            None => select_chunk_size()
+        };
+
         let slicer = Slicer::new(&args.filepath, chunk_size as usize);
         slicer.deconstruct() // TODO: Error handling - don't panic
             .expect("Something went wrong while trying to deconstruct the file");
