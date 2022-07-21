@@ -7,8 +7,20 @@ For the sender, the program will cut files into variably-sized chunks (8MB for D
 ## Example 🚀
 ![A demo GIF of the program deconstructing an reconstructing a file](demo.gif)
 
-## Work in progress ⚠️
-The program is not ready to use yet.
+## Usage 💡
+```
+USAGE:
+    nfl [OPTIONS] <FILEPATH>
+
+ARGS:
+    <FILEPATH>    The file you want to (de/re)construct
+
+OPTIONS:
+    -c, --chunk-size <CHUNK_SIZE>    The chunk size in megabytes
+    -h, --help                       Print help information
+    -n, --no-cleanup                 Don't clean up the chunks and metadata
+    -V, --version                    Print version information
+```
 
 ## TODO 🛠
 - [x] Make the slicer
@@ -22,7 +34,7 @@ The program is not ready to use yet.
   - [ ] [Low priority] Clean up the Glue struct 📖
   - [ ] [Low priority] Think of a better name
 - [ ] Fix the poor error handling 🧑‍💻📖
-- [ ] Make a decent CLI/TUI experience 🧑‍💻
-  - [x] Use a crate like indicatif to show progress 🧑‍💻
+- [x] Make a decent CLI/TUI experience
+  - [x] Use a crate like indicatif to show progress
   - [x] Offer an interactive mode if no flags are set
 - [ ] Make a nice GUI
