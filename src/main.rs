@@ -23,7 +23,14 @@ struct Args {
     /// The chunk size in megabytes
     #[clap(short, long, value_parser)]
     chunk_size: Option<usize>,
+
+    /// Don't clean up the chunks and metadata
+    #[clap(short, long, value_parser)]
+    no_cleanup: bool,
 }
+
+// TODO: Add a disable_emoji flag
+// TODO: Implement the no_cleanup flag
 
 fn main() -> Result<(), io::Error>{
     let args = Args::parse();

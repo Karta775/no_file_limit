@@ -126,7 +126,6 @@ impl Slicer {
         }
         self.create_chunks()?;
         self.create_metadata()?;
-        println!("Success!");
 
         Ok(())
     }
@@ -158,10 +157,11 @@ impl Glue {
     }
 
     pub fn discard_chunks(&self) {
+        println!(" 🧽 Cleaning up...");
         for i in 0..self.metadata.num_of_chunks {
             let chunk_filename = self.chunk_filename(i);
             match fs::remove_file(&chunk_filename) {
-                Ok(_) => { println!("Removed {}", &chunk_filename) }
+                Ok(_) => {}
                 Err(_) => { println!("Couldn't remove {}", &chunk_filename) }
             }
         }
@@ -170,31 +170,53 @@ impl Glue {
     pub fn discard_metadata(&self) {
         let metadata_filename = format!("{}.{}", &self.metadata.filename, METADATA_FILE_EXTENSION);
         match fs::remove_file(&metadata_filename) {
-            Ok(_) => { println!("Removed {}", &metadata_filename) }
+            Ok(_) => {}
             Err(_) => { println!("Couldn't remove {}", &metadata_filename) }
         }
     }
 
     pub fn reconstruct(&self) -> Result<(), io::Error> {
         let (all_chunks_exist, count) = self.all_chunks_exist();
-        if !all_chunks_exist {
-            println!("Only {}/{} chunks were found :(", count, self.metadata.num_of_chunks);
+        if !all_chunks_exist { // FIXME: This doesn't check the path, only the file root
+            println!("Error: {}/{} chunks were found 😔", count, self.metadata.num_of_chunks);
             std::process::exit(1);
         }
 
-        let mut file = File::create(&self.metadata.filename)?;
-        let mut file_bytes: Vec<u8> = Vec::new();
-        for i in 0..self.metadata.num_of_chunks {
-            let chunk_bytes = read(&self.chunk_filename(i))?;
-            file_bytes.extend(chunk_bytes);
-        }
-        file.write_all(&file_bytes)?;
+        // Create a progress bar
+        let pb = ProgressBar::new(self.metadata.filesize as u64);
+        pb.set_style(ProgressStyle::default_bar()
+            .template(" 🔨 Merging chunks {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes}")
+            .progress_chars("#>-"));
 
-        if file_bytes.len() != self.metadata.filesize {
+        let file = File::create(&self.metadata.filename)?;
+        let mut writer = BufWriter::with_capacity(8192, file);
+
+        let mut bytes: Vec<u8> = vec![0; 8192];
+        let mut pb_throttle = 0;
+        let mut bytes_written = 0;
+        for i in 0..self.metadata.num_of_chunks {
+            let chunk = File::open(&self.chunk_filename(i))?;
+            let mut reader = BufReader::with_capacity(8192, chunk);
+
+            while bytes_written < usize::min((i + 1) * self.metadata.chunk_size, self.metadata.filesize) {
+                reader.read_exact(&mut bytes).unwrap();
+                let bytes_w = writer.write(&bytes).unwrap();
+                bytes_written += bytes_w;
+
+                pb_throttle += bytes_w;
+                if pb_throttle > MEBIBYTE_SIZE {
+                    pb.set_position(bytes_written as u64);
+                    pb_throttle = 0;
+                }
+            }
+        }
+        writer.flush()?;
+        pb.finish();
+
+        if bytes_written != self.metadata.filesize {
             println!("The output file is not the same size as the input file, aborting...");
             fs::remove_file(&self.metadata.filename)?;
         } else {
-            println!("Success! Cleaning up...");
             self.discard_chunks();
             self.discard_metadata();
         }
