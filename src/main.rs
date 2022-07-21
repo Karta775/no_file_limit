@@ -1,7 +1,9 @@
 
-mod helper;
+mod slicer;
+mod glue;
+mod metadata;
 
-use helper::*;
+use metadata::*;
 use clap::Parser;
 use std::path::PathBuf;
 use std::io;
@@ -25,7 +27,7 @@ struct Args {
     chunk_size: Option<usize>,
 
     /// Don't clean up the chunks and metadata
-    #[clap(short, long, value_parser)]
+    #[clap(short, long)]
     no_cleanup: bool,
 }
 
@@ -40,19 +42,14 @@ fn main() -> Result<(), io::Error>{
 
     // If the metadata file is found then reconstruct, otherwise deconstruct
     if extension == METADATA_FILE_EXTENSION {
-        let glue = Glue::new(&args.filepath);
-        glue.reconstruct() // TODO: Error handling - don't panic
-            .expect("Something went wrong while trying to reconstruct the file");
+        glue::reconstruct(&args.filepath, args.no_cleanup)?;
     } else if extension != METADATA_FILE_EXTENSION {
         // Set the chunk size in MiB from commandline arguments or interactive mode
         let chunk_size = match args.chunk_size {
             Some(size) => size,
             None => select_chunk_size()
         };
-
-        let mut slicer = Slicer::new(&args.filepath, chunk_size as usize);
-        slicer.deconstruct() // TODO: Error handling - don't panic
-            .expect("Something went wrong while trying to deconstruct the file");
+        slicer::deconstruct(&args.filepath, chunk_size)?;
     }
 
     return Ok(())
