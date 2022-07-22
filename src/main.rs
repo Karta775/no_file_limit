@@ -32,13 +32,15 @@ struct Args {
 }
 
 // TODO: Add a disable_emoji flag
-// TODO: Implement the no_cleanup flag
 
 fn main() -> Result<(), io::Error>{
     let args = Args::parse();
     let path = PathBuf::from(&args.filepath);
-    // TODO: Error handling - file not found / no extension
-    let extension = path.extension().unwrap().to_str().unwrap().to_owned();
+    // TODO: Error handling - file not found
+    let extension = match path.extension() {
+        Some(x) => x.to_str().unwrap(),
+        None => "",
+    };
 
     // If the metadata file is found then reconstruct, otherwise deconstruct
     if extension == METADATA_FILE_EXTENSION {

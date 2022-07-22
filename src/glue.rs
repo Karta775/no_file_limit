@@ -2,21 +2,32 @@ use std::{fs, io};
 use crate::metadata::*;
 use std::fs::{File};
 use std::io::{BufReader, BufWriter, Read, Write};
-use std::path::{Path};
+use std::path::{Path, PathBuf};
 use indicatif::{ProgressBar, ProgressStyle};
 
 fn chunk_filename(base_name: &str, index: usize) -> String {
     format!("{}.{:02}", &base_name, index + 1)
 }
 
-pub fn all_chunks_exist(path_str: &str) -> (bool, usize) {
+pub fn get_dir(path_str: &str) -> PathBuf {
+    let mut dir = PathBuf::from(&path_str);
+    dir.pop();
+    dir
+}
+
+pub fn all_chunks_exist(path_str: &str) -> bool {
     let metadata = read_metadata(&path_str);
-    let mut count = 0;
+    let mut dir = get_dir(&path_str).into_os_string().into_string().unwrap();
+    if dir == "" { dir = String::from(".") };
+
     for i in 0..metadata.num_of_chunks {
-        let chunk_exists = Path::new(&chunk_filename(&metadata.filename, i)).exists();
-        count += if chunk_exists { 1 } else { 0 };
+        let chunk_filename = &chunk_filename(&metadata.filename, i);
+        let chunk_exists = Path::new(&format!("{}/{}", &dir, &chunk_filename)).exists();
+        if !chunk_exists {
+            return false;
+        }
     }
-    (count == metadata.num_of_chunks, count)
+    true
 }
 
 pub fn discard_chunks(metadata: &Metadata) {
@@ -29,13 +40,12 @@ pub fn discard_chunks(metadata: &Metadata) {
     }
 }
 
-
 pub fn reconstruct(path_str: &str, no_cleanup: bool) -> Result<(), io::Error> {
     let metadata = read_metadata(&path_str);
 
-    let (all_chunks_exist, count) = all_chunks_exist(&path_str);
-    if !all_chunks_exist { // FIXME: This doesn't check the path, only the file root
-        println!("Error: {}/{} chunks were found 😔", count, metadata.num_of_chunks);
+    // Check that all chunks are present
+    if !all_chunks_exist(&path_str) {
+        println!("You don't have enough chunks, there should be {} 😔", metadata.num_of_chunks);
         std::process::exit(1);
     }
 
