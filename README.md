@@ -27,14 +27,12 @@ OPTIONS:
   - [x] Cut files into chunks
   - [x] Generate a metadata file 
   - [x] ~~Neatly~~ refactor it into functions or a struct
-  - [ ] [Low priority] Clean up the Slicer struct 📖
 - [x] Make the reconstructor
   - [x] Read a metadata file
   - [x] Stitch files back together
-  - [ ] [Low priority] Clean up the Glue struct 📖
-  - [ ] [Low priority] Think of a better name
-- [ ] Fix the poor error handling 🧑‍💻📖
 - [x] Make a decent CLI/TUI experience
   - [x] Use a crate like indicatif to show progress
   - [x] Offer an interactive mode if no flags are set
+- [ ] Fix the poor error handling 🧑‍💻📖
+- [ ] Rewrite the nasty bits of code 🧑‍💻📖
 - [ ] Make a nice GUI
