@@ -1,4 +1,3 @@
-use std::fs;
 use std::fs::read;
 use std::path::PathBuf;
 use serde::Serialize;
@@ -22,14 +21,6 @@ pub fn generate_metadata(filename: String, filesize: usize, chunk_size: usize, n
         filesize,
         chunk_size,
         num_of_chunks,
-    }
-}
-
-pub fn discard_metadata(base_name: &str) {
-    let metadata_filename = format!("{}.{}", &base_name, METADATA_FILE_EXTENSION);
-    match fs::remove_file(&metadata_filename) {
-        Ok(_) => {}
-        Err(_) => { println!("Couldn't remove {}", &metadata_filename) }
     }
 }
 

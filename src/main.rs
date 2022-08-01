@@ -1,12 +1,13 @@
+extern crate core;
 
-mod slicer;
-mod glue;
 mod metadata;
+pub mod helper;
 
+use helper::*;
+use std::error::Error;
 use metadata::*;
 use clap::Parser;
 use std::path::PathBuf;
-use std::io;
 use dialoguer::{theme::ColorfulTheme, Select, Input};
 
 const SELECTION_DISCORD: &str = "Discord";
@@ -33,7 +34,7 @@ struct Args {
 
 // TODO: Add a disable_emoji flag
 
-fn main() -> Result<(), io::Error>{
+fn main() -> Result<(), Box<dyn Error>>{
     let args = Args::parse();
     let path = PathBuf::from(&args.filepath);
     // TODO: Error handling - file not found
@@ -44,14 +45,14 @@ fn main() -> Result<(), io::Error>{
 
     // If the metadata file is found then reconstruct, otherwise deconstruct
     if extension == METADATA_FILE_EXTENSION {
-        glue::reconstruct(&args.filepath, args.no_cleanup)?;
+        Glue::reconstruct(&args.filepath, args.no_cleanup)?;
     } else if extension != METADATA_FILE_EXTENSION {
         // Set the chunk size in MiB from commandline arguments or interactive mode
         let chunk_size = match args.chunk_size {
             Some(size) => size,
             None => select_chunk_size()
         };
-        slicer::deconstruct(&args.filepath, chunk_size)?;
+        Slicer::deconstruct(&args.filepath, chunk_size).expect("Failed to deconstruct the file");
     }
 
     return Ok(())
